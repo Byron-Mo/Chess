@@ -2,6 +2,7 @@
 require_relative 'sliding_piece'
 require_relative 'stepping_piece'
 require_relative 'piece'
+require 'byebug'
 
 class Board
   attr_accessor :grid, :error_message
@@ -56,8 +57,12 @@ class Board
     if piece.instance_of?(Pawn) && end_pos[0] == piece.ending_row
       # promote to queen
       self[*end_pos] = Queen.new(end_pos, piece.color, self)
-    elsif piece.instance_of?(Pawn) && 
+    elsif piece.instance_of?(Pawn) && check_if_diagonal_and_piece(start_pos, end_pos)
+      # en passant
+      self[*end_pos] = piece
+      piece.pos = end_pos
 
+      self[start_pos[0], end_pos[1]] = nil
     else
       self[*end_pos] = piece
       piece.pos = end_pos
@@ -107,17 +112,17 @@ class Board
       if black_piece.color == :black && black_piece.instance_of?(Pawn)
         left_pos = [4, x_pos - 1]
         right_pos = [4, x_pos + 1]
-        add_adjacent_piece_to_pawn(black_piece, left_pos, 'left')
-        add_adjacent_piece_to_pawn(black_piece, right_pos, 'right')
-        # black_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
-        # black_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
+        # add_adjacent_piece_to_pawn(black_piece, left_pos, 'left')
+        # add_adjacent_piece_to_pawn(black_piece, right_pos, 'right')
+        black_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
+        black_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
       elsif white_piece.color == :white && white_piece.instance_of?(Pawn)
         left_pos = [3, x_pos - 1]
         right_pos = [3, x_pos + 1]
-        add_adjacent_piece_to_pawn(white_piece, left_pos, 'left')
-        add_adjacent_piece_to_pawn(white_piece, right_pos, 'right')
-        # white_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
-        # white_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
+        # add_adjacent_piece_to_pawn(white_piece, left_pos, 'left')
+        # add_adjacent_piece_to_pawn(white_piece, right_pos, 'right')
+        white_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
+        white_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
       end
     end
   end
@@ -146,6 +151,14 @@ class Board
     pos.all? { |x| x.between?(0, 7) }
   end
 
+  def check_if_diagonal_and_piece(start_pos, end_pos)
+    return false unless self[*end_pos].nil?
+
+    if end_pos[1] - start_pos[1] != 0
+      return true
+    end
+    false
+  end
 
   def dup
     board_dup = Board.new(false)

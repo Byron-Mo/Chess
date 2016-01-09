@@ -1,5 +1,6 @@
 #has color, value, pos, board attributes
 #has to_s, in_bounds?, same_color?, diff_color? methods
+require 'byebug'
 class Pawn < Piece
   attr_accessor :double_step, :adjacent_left, :adjacent_right
   attr_reader :ending_row, :fifth_rank
@@ -51,12 +52,14 @@ class Pawn < Piece
       @attack_offset.each_with_index do |offset, idx|
         diagonal_pos = [@pos[0] + offset[0], @pos[1] + offset[1]]
         if @board[*diagonal_pos].nil? && in_bounds?(diagonal_pos)
-          if idx == 0
+          # byebug
+          if idx == 0 && @adjacent_left.nil? == false
             if @adjacent_left.instance_of?(Pawn) && @adjacent_left.double_step == true
+              puts "in here"
               moves << diagonal_pos
             end
-          elsif idx == 1
-            if @adjacent_right.instance_of?(Pawn) && @adjacent_left.double_step == true
+          elsif idx == 1 && @adjacent_right.nil? == false
+            if @adjacent_right.instance_of?(Pawn) && @adjacent_right.double_step == true
               moves << diagonal_pos
             end
           end
