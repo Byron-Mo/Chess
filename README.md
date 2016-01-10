@@ -1,12 +1,12 @@
-# Command Line Chess
+# Chess
 
 ![Alt text](/lib/images/chess.png?raw=true)
 
-Command Line Chess is a chess game made with Ruby and played on your terminal. The game supports two players as well as player against a computer AI.
+Ruby Chess is a chess game made with Ruby and played on your terminal. The game supports two players as well as player against a computer AI.
 
 ## Instructions to Play
-- Git clone the folder and navigate to it on your terminal
-- Install colorize by typing in: "gem install colorize"
+- Clone the folder and navigate to it on your terminal
+- Install colorize gem by typing: "bundle install"
 - Run the game with: "ruby game.rb"
 - Have fun!
 
