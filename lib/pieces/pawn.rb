@@ -1,13 +1,13 @@
-#has color, value, pos, board attributes
-#has to_s, in_bounds?, same_color?, diff_color? methods
-require 'byebug'
+require_relative 'piece'
+
 class Pawn < Piece
   attr_accessor :double_step, :adjacent_left, :adjacent_right
-  attr_reader :ending_row, :fifth_rank
+  attr_reader :ending_row, :fifth_rank, :point
 
   def initialize(pos, color = nil, board = nil)
     super
     @value = '♟'
+    @point = 1
     @starting_row = pos[0]
     @double_step = false
     @adjacent_left = nil
@@ -68,4 +68,13 @@ class Pawn < Piece
     moves
   end
 
+  def attackable?(pos)
+    @attack_offset.each do |offset|
+      diagonal_pos = [@pos[0] + offset[0], @pos[1] + offset[1]]
+      if in_bounds?(diagonal_pos) && diagonal_pos == pos
+        return true
+      end
+    end
+    false
+  end
 end

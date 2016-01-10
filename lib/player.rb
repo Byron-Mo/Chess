@@ -1,5 +1,3 @@
-# require_relative "display"
-
 class Player
   attr_reader :color, :display
 

@@ -1,5 +1,4 @@
 require 'colorize'
-# require_relative 'board'
 require_relative "cursorable"
 
 class Display
@@ -56,11 +55,4 @@ class Display
     end
     { background: bg}
   end
-end
-
-if __FILE__==$PROGRAM_NAME
-  b = Board.new
-  d = Display.new(b)
-  d.display_loop
-
 end

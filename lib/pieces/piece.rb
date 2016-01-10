@@ -1,19 +1,28 @@
-require_relative 'board'
-require_relative 'sliding_piece'
+# require_relative 'board'
 
 class Piece
   attr_reader :color
-  attr_accessor :value, :pos, :board
+  attr_accessor :value, :pos, :board, :safe_moves
 
   def initialize(pos, color = nil, board = nil)
     @board = board
     @pos = pos
-    # @value = color.nil? ? ' ' : '♟'
     @color = color
+    @safe_moves = []
   end
 
   def valid_moves
     moves.reject{|position| move_into_check?(position)}
+  end
+
+  def valid_attack_moves(enemy_moves)
+    new_moves = []
+    enemy_moves.each do |move|
+      if attackable?(move) && move_into_check?(move) == false
+        new_moves << move
+      end
+    end
+    new_moves
   end
 
   def move_into_check?(end_pos)
@@ -42,11 +51,4 @@ class Piece
   def opp_color?(current_piece, other_piece)
     diff_color?(current_piece, other_piece) && !other_piece.nil?
   end
-
-end
-
-if __FILE__ == $PROGRAM_NAME
-  # b = Board.new(false)
-  # rook = Rook.new([0,0], :black, b)
-  # p rook.valid_moves
 end

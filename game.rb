@@ -1,28 +1,27 @@
-require_relative "board"
-require_relative "player"
-require_relative "display"
-require_relative "computerplayer"
+require_relative "lib/board"
+require_relative "lib/player"
+require_relative "lib/display"
+require_relative "lib/computerplayer"
 
 class Game
   attr_reader :board, :display, :current_player
 
-  def initialize
+  def initialize(user_input)
     @board = Board.new
     @display = Display.new(@board)
     @player1 = Player.new(@display, :white)
-    # @player2 = Player.new(@display, :black)
-    @player2 = ComputerPlayer.new(@board, :black)
     @current_player = @player1
+    if user_input == 1
+      @player2 = ComputerPlayer.new(@board, :black)
+    else
+      @player2 = Player.new(@display, :black)
+    end
   end
 
   def run
-
-    until board.checkmate?(current_player.color)
+    until board.checkmate?(current_player.color) || board.stalemate?(current_player.color)
       begin
         start_pos, end_pos = current_player.move
-        # if start_pos
-        #   @selected_piece = board[*start_pos]
-        # end
         board.move_piece(start_pos, end_pos, current_player.color)
 
         switch_players!
@@ -33,7 +32,12 @@ class Game
       end
     end
     display.display_grid
-    puts "CHECKMATE. #{current_player.color.upcase} LOSES."
+
+    if board.checkmate?(current_player.color)
+      puts "CHECKMATE. #{current_player.color.upcase} LOSES."
+    elsif board.stalemate?(current_player.color)
+      puts "It's a stalemate!"
+    end
   end
 
   def notify_players
@@ -50,7 +54,11 @@ class Game
 end
 
 if __FILE__ == $PROGRAM_NAME
-  # game = Game.new
-  # p game.board[7, 1].moves
-  Game.new.run
+  puts "Welcome to Chess! How would you like to play?"
+  puts "1. Against AI"
+  puts "2. Two players"
+  puts "Please enter your selection."
+  user_input = $stdin.gets.chomp.to_i
+  game = Game.new(user_input)
+  game.run
 end

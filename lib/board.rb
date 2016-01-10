@@ -1,9 +1,9 @@
-require_relative 'sliding_piece'
-require_relative 'stepping_piece'
-require_relative 'piece'
-require_relative 'pawn'
-require_relative 'nil_class'
-require 'byebug'
+# require_relative 'sliding_piece'
+# require_relative 'stepping_piece'
+# require_relative 'piece'
+# require_relative 'pawn'
+# require_relative 'nil_class'
+require_relative 'pieces'
 
 class Board
   attr_accessor :grid, :error_message
@@ -35,9 +35,16 @@ class Board
     false
   end
 
+  def stalemate?(color)
+    unless checkmate?(color)
+      return true if grid.flatten.select{|piece| piece.color == color}
+      .all?{|piece| piece.valid_moves.empty?}
+    end
+    false
+  end
+
   def move_piece(start_pos, end_pos, player_color)
     piece = self[*start_pos]
-    # byebug
     if piece.nil?
       raise "Cannot move an empty position"
     elsif self[*end_pos].color == piece.color
@@ -88,7 +95,7 @@ class Board
 
   def move_piece!(start_pos, end_pos, player_color)
     piece = self[*start_pos]
-    raise "Piece cannot move like that" unless piece.moves.include?(end_pos)
+    # raise "Piece cannot move like that" unless piece.moves.include?(end_pos)
 
         if piece.instance_of?(Pawn)
           if (end_pos[0] - start_pos[0]).abs == 2
@@ -175,15 +182,11 @@ class Board
         right_pos = [4, x_pos + 1]
         add_adjacent_piece_to_pawn(black_piece, left_pos, 'left')
         add_adjacent_piece_to_pawn(black_piece, right_pos, 'right')
-        # black_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
-        # black_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
       elsif white_piece.color == :white && white_piece.instance_of?(Pawn)
         left_pos = [3, x_pos - 1]
         right_pos = [3, x_pos + 1]
         add_adjacent_piece_to_pawn(white_piece, left_pos, 'left')
         add_adjacent_piece_to_pawn(white_piece, right_pos, 'right')
-        # white_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
-        # white_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
       end
     end
   end
@@ -247,18 +250,7 @@ class Board
     board_dup
   end
 
-
-
   def pieces
     @rows.flatten.reject { |piece| piece.empty? }
   end
-end
-
-if __FILE__==$PROGRAM_NAME
-  b = Board.new
-  b_dup = b.dup
-
-  p b.grid[0][0].object_id
-  p b_dup.grid[0][0].object_id
-
 end
