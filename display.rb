@@ -1,19 +1,21 @@
 require 'colorize'
-require_relative 'board'
+# require_relative 'board'
 require_relative "cursorable"
 
 class Display
   include Cursorable
+  attr_accessor :notifications
 
   def initialize(board)
     @board = board
     @cursor_pos = [0, 0]
+    @notifications = {}
   end
 
   def display_grid
-  
-    system("clear")
 
+    system("clear")
+    puts "Arrow keys or WASD to move, space or enter to confirm."
     grid = @board.grid
     grid.each.with_index do |row, i|
       row.each.with_index do |col, j|
@@ -22,8 +24,21 @@ class Display
       end
       puts
     end
+    @notifications.each do |key, val|
+      puts "#{val}"
+    end
+  end
 
-    message
+  def set_check!
+    @notifications[:check] = "Check!"
+  end
+
+  def uncheck!
+    @notifications.delete(:check)
+  end
+
+  def reset!
+    @notifications.delete(:error)
   end
 
   def message
@@ -35,9 +50,9 @@ class Display
     if [i, j] == @cursor_pos
       bg = :light_red
     elsif (i + j).even?
-      bg = :green
+      bg = :light_blue
     else
-      bg = :blue
+      bg = :light_yellow
     end
     { background: bg}
   end

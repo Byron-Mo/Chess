@@ -1,54 +1,51 @@
-require_relative "nil_class"
 require_relative "board"
 require_relative "player"
-require_relative "piece"
-require_relative "sliding_piece"
-require_relative "stepping_piece"
-require_relative "pawn"
+require_relative "display"
+require_relative "computerplayer"
 
 class Game
-  attr_reader :board
+  attr_reader :board, :display, :current_player
 
   def initialize
     @board = Board.new
-    @player1 = Player.new(@board, :white)
-    @player2 = Player.new(@board, :black)
+    @display = Display.new(@board)
+    @player1 = Player.new(@display, :white)
+    # @player2 = Player.new(@display, :black)
+    @player2 = ComputerPlayer.new(@board, :black)
     @current_player = @player1
-    # @player_colors = [:white, :black]
-  end
-
-  def switch_players!
-    # @player_colors.rotate![0]
-    if @current_player == @player1
-      @current_player = @player2
-    else
-      @current_player = @player1
-    end
-
   end
 
   def run
-    begin
-      loop do
-        # start_pos = @player.move
-        # end_pos = @player.move
-        @board.move_piece(@current_player.move, @current_player.move, @current_player.color)
+
+    until board.checkmate?(current_player.color)
+      begin
+        start_pos, end_pos = current_player.move
+        # if start_pos
+        #   @selected_piece = board[*start_pos]
+        # end
+        board.move_piece(start_pos, end_pos, current_player.color)
 
         switch_players!
-        # puts "#{@current_player.color.to_s.capitalize}'s turn"
-        if @board.checkmate?(@current_player.color)
-          break
-        end
-        if @board.in_check?(@current_player.color)
-          @board.error_message = "CHECK!"
-        end
-
+        notify_players
+      rescue StandardError => e
+        @display.notifications[:error] = e.message
+        retry
       end
-      puts "CHECKMATE. #{@current_player.color.upcase} LOSES."
-    rescue ArgumentError => e
-      puts e
-      retry
     end
+    display.display_grid
+    puts "CHECKMATE. #{current_player.color.upcase} LOSES."
+  end
+
+  def notify_players
+    if board.in_check?(current_player.color)
+      display.set_check!
+    else
+      display.uncheck!
+    end
+  end
+
+  def switch_players!
+    @current_player = (current_player == @player1) ? @player2 : @player1
   end
 end
 

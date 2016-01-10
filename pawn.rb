@@ -7,6 +7,7 @@ class Pawn < Piece
 
   def initialize(pos, color = nil, board = nil)
     super
+    @value = '♟'
     @starting_row = pos[0]
     @double_step = false
     @adjacent_left = nil
@@ -16,7 +17,7 @@ class Pawn < Piece
     if @starting_row == 1
       @ending_row = 7
       @fifth_rank = 4
-    elsif @starting_row = 6
+    elsif @starting_row == 6
       @ending_row = 0
       @fifth_rank = 3
     end
@@ -52,10 +53,8 @@ class Pawn < Piece
       @attack_offset.each_with_index do |offset, idx|
         diagonal_pos = [@pos[0] + offset[0], @pos[1] + offset[1]]
         if @board[*diagonal_pos].nil? && in_bounds?(diagonal_pos)
-          # byebug
           if idx == 0 && @adjacent_left.nil? == false
             if @adjacent_left.instance_of?(Pawn) && @adjacent_left.double_step == true
-              puts "in here"
               moves << diagonal_pos
             end
           elsif idx == 1 && @adjacent_right.nil? == false

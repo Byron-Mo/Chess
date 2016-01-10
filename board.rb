@@ -1,7 +1,8 @@
-
 require_relative 'sliding_piece'
 require_relative 'stepping_piece'
 require_relative 'piece'
+require_relative 'pawn'
+require_relative 'nil_class'
 require 'byebug'
 
 class Board
@@ -14,10 +15,13 @@ class Board
 
   def in_check?(color)
     flattened_grid = @grid.flatten.reject{|x| x.nil?}
-    king_piece = flattened_grid.select{|piece| piece.color == color && piece.value == :K}[0]
+    king_piece = flattened_grid.select{|piece| piece.color == color && piece.value == '♚'}[0]
     flattened_grid.each do |piece|
       if king_piece != piece
-        return true if piece.moves.include?(king_piece.pos)
+        if piece.moves.include?(king_piece.pos)
+          king_piece.has_moved = true
+          return true
+        end
       end
     end
     false
@@ -33,19 +37,17 @@ class Board
 
   def move_piece(start_pos, end_pos, player_color)
     piece = self[*start_pos]
-
+    # byebug
     if piece.nil?
-      @error_message = "Cannot move an empty position"
-      raise ArgumentError
+      raise "Cannot move an empty position"
     elsif self[*end_pos].color == piece.color
-      @error_message = "Cannot take your own piece"
-      raise ArgumentError
+      raise "Cannot take your own piece"
     elsif piece.color != player_color
-      @error_message = "Cannot move your opponent's pieces"
-      raise ArgumentError
-    elsif piece.moves.include?(end_pos) == false
-      @error_message = "Invalid move"
-      raise ArgumentError
+      raise "Cannot move your opponent's pieces"
+    elsif !piece.moves.include?(end_pos)
+      raise "Invalid move"
+    elsif !piece.valid_moves.include?(end_pos)
+      raise "You cannot move into check"
     end
 
     if piece.instance_of?(Pawn)
@@ -54,15 +56,27 @@ class Board
       end
     end
 
+    if piece.instance_of?(King) || piece.instance_of?(Rook)
+      piece.has_moved = true
+    end
+
+    if piece.instance_of?(Pawn) && check_if_diagonal_and_piece(start_pos, end_pos)
+      # en passant
+      self[start_pos[0], end_pos[1]] = nil
+    end
+
+    if piece.instance_of?(King) && (start_pos[1] - end_pos[1]).abs == 2
+      # castling
+      if end_pos[1] == 6
+        move_rook_during_castle([start_pos[0], 7], [start_pos[0], end_pos[1] - 1])
+      else
+        move_rook_during_castle([start_pos[0], 0], [start_pos[0], end_pos[1] + 1])
+      end
+    end
+
     if piece.instance_of?(Pawn) && end_pos[0] == piece.ending_row
       # promote to queen
       self[*end_pos] = Queen.new(end_pos, piece.color, self)
-    elsif piece.instance_of?(Pawn) && check_if_diagonal_and_piece(start_pos, end_pos)
-      # en passant
-      self[*end_pos] = piece
-      piece.pos = end_pos
-
-      self[start_pos[0], end_pos[1]] = nil
     else
       self[*end_pos] = piece
       piece.pos = end_pos
@@ -70,6 +84,53 @@ class Board
     self[*start_pos] = nil
 
     update_pawn_adjacents
+  end
+
+  def move_piece!(start_pos, end_pos, player_color)
+    piece = self[*start_pos]
+    raise "Piece cannot move like that" unless piece.moves.include?(end_pos)
+
+        if piece.instance_of?(Pawn)
+          if (end_pos[0] - start_pos[0]).abs == 2
+            piece.double_step = true
+          end
+        end
+
+        if piece.instance_of?(King) || piece.instance_of?(Rook)
+          piece.has_moved = true
+        end
+
+        if piece.instance_of?(Pawn) && check_if_diagonal_and_piece(start_pos, end_pos)
+          # en passant
+          self[start_pos[0], end_pos[1]] = nil
+        end
+
+        if piece.instance_of?(King) && (start_pos[1] - end_pos[1]).abs == 2
+          # castling
+          if end_pos[1] == 6
+            move_rook_during_castle([start_pos[0], 7], [start_pos[0], end_pos[1] - 1])
+          else
+            move_rook_during_castle([start_pos[0], 0], [start_pos[0], end_pos[1] + 1])
+          end
+        end
+
+        if piece.instance_of?(Pawn) && end_pos[0] == piece.ending_row
+          # promote to queen
+          self[*end_pos] = Queen.new(end_pos, piece.color, self)
+        else
+          self[*end_pos] = piece
+          piece.pos = end_pos
+        end
+        self[*start_pos] = nil
+
+        update_pawn_adjacents
+  end
+
+  def move_rook_during_castle(old_rook_pos, new_rook_pos)
+    rook = self[*old_rook_pos]
+    self[*new_rook_pos] = rook
+    rook.pos = [*new_rook_pos]
+    self[*old_rook_pos] = nil
   end
 
   def populate_board
@@ -112,17 +173,17 @@ class Board
       if black_piece.color == :black && black_piece.instance_of?(Pawn)
         left_pos = [4, x_pos - 1]
         right_pos = [4, x_pos + 1]
-        # add_adjacent_piece_to_pawn(black_piece, left_pos, 'left')
-        # add_adjacent_piece_to_pawn(black_piece, right_pos, 'right')
-        black_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
-        black_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
+        add_adjacent_piece_to_pawn(black_piece, left_pos, 'left')
+        add_adjacent_piece_to_pawn(black_piece, right_pos, 'right')
+        # black_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
+        # black_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
       elsif white_piece.color == :white && white_piece.instance_of?(Pawn)
         left_pos = [3, x_pos - 1]
         right_pos = [3, x_pos + 1]
-        # add_adjacent_piece_to_pawn(white_piece, left_pos, 'left')
-        # add_adjacent_piece_to_pawn(white_piece, right_pos, 'right')
-        white_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
-        white_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
+        add_adjacent_piece_to_pawn(white_piece, left_pos, 'left')
+        add_adjacent_piece_to_pawn(white_piece, right_pos, 'right')
+        # white_piece.adjacent_left = self[*left_pos] if in_bounds?(left_pos)
+        # white_piece.adjacent_right = self[*right_pos] if in_bounds?(right_pos)
       end
     end
   end
@@ -167,23 +228,29 @@ class Board
         if @grid[i][j].nil? == false
           piece = @grid[i][j]
           case piece.value
-          when :r
+          when '♜'
             board_dup.grid[i][j] = Rook.new([i, j], piece.color, board_dup)
-          when :k
+          when '♞'
             board_dup.grid[i][j] = Knight.new([i, j], piece.color, board_dup)
-          when :b
+          when '♝'
             board_dup.grid[i][j] = Bishop.new([i, j], piece.color, board_dup)
-          when :q
+          when '♛'
             board_dup.grid[i][j] = Queen.new([i, j], piece.color, board_dup)
-          when :K
+          when '♚'
             board_dup.grid[i][j] = King.new([i, j], piece.color, board_dup)
-          when :p
+          when '♟'
             board_dup.grid[i][j] = Pawn.new([i, j], piece.color, board_dup)
           end
         end
       end
     end
     board_dup
+  end
+
+
+
+  def pieces
+    @rows.flatten.reject { |piece| piece.empty? }
   end
 end
 

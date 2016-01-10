@@ -8,7 +8,7 @@ class Piece
   def initialize(pos, color = nil, board = nil)
     @board = board
     @pos = pos
-    @value = color.nil? ? ' ' : :p
+    # @value = color.nil? ? ' ' : '♟'
     @color = color
   end
 
@@ -19,7 +19,7 @@ class Piece
   def move_into_check?(end_pos)
     #duplicate board and perform the move
     dup_board = @board.dup
-    dup_board.move_piece(@pos, end_pos, @color)
+    dup_board.move_piece!(@pos, end_pos, @color)
     dup_board.in_check?(@color)
   end
 
@@ -46,7 +46,7 @@ class Piece
 end
 
 if __FILE__ == $PROGRAM_NAME
-  b = Board.new(false)
-  rook = Rook.new([0,0], :black, b)
-  p rook.valid_moves
+  # b = Board.new(false)
+  # rook = Rook.new([0,0], :black, b)
+  # p rook.valid_moves
 end

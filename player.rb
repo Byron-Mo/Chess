@@ -1,19 +1,28 @@
-require_relative "display"
+# require_relative "display"
 
 class Player
-  attr_reader :color
+  attr_reader :color, :display
 
-  def initialize(board, color)
-    @display = Display.new(board)
+  def initialize(display, color)
+    @display = display
     @color = color
   end
 
   def move
-    result = nil
-    until result
+    from_pos, to_pos = nil, nil
+    until from_pos && to_pos
       @display.display_grid
-      result = @display.get_input
+
+      if from_pos
+        puts "#{color}'s turn. Move to where?"
+        to_pos = display.get_input
+        display.reset! if to_pos
+      else
+        puts "#{color}'s turn. Move from where?"
+        from_pos = display.get_input
+        display.reset! if from_pos
+      end
     end
-    result
+    [from_pos, to_pos]
   end
 end

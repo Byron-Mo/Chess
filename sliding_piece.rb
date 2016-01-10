@@ -4,6 +4,7 @@ class SlidingPiece < Piece
   def initialize(pos, color = nil, board = nil)
     super
     @offsets = [0, 1, -1].repeated_permutation(2).to_a - [[0, 0]]
+    # @offsets = [[-1, 0], [0, -1], [0, 1], [1, 0], [-1, -1], [-1, 1], [1, -1], [1, 1]]
   end
 
   def moves
@@ -31,10 +32,12 @@ end
 
 class Rook < SlidingPiece
   attr_reader :offsets
+  attr_accessor :has_moved
 
   def initialize(pos, color = nil, board = nil)
+    @has_moved = false
     super
-    @value = :r
+    @value = '♜'
     @offsets = @offsets.reject{|x, y| x.abs == y.abs}
   end
 end
@@ -42,14 +45,14 @@ end
 class Queen < SlidingPiece
   def initialize(pos, color = nil, board = nil)
     super
-    @value = :q
+    @value = '♛'
   end
 end
 
 class Bishop < SlidingPiece
   def initialize(pos, color = nil, board = nil)
     super
-    @value = :b
+    @value = '♝'
     @offsets = @offsets.select{|x, y| x.abs == y.abs}
   end
 end
