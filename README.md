@@ -2,7 +2,7 @@
 
 ![Alt text](/lib/images/chess.png?raw=true)
 
-Command Line Chess is a chess game made with Ruby and played on your terminal. The game supports two players and as well one player against a computer AI.
+Command Line Chess is a chess game made with Ruby and played on your terminal. The game supports two players as well as player against a computer AI.
 
 ## Instructions to Play
 - Git clone the folder and navigate to it on your terminal
